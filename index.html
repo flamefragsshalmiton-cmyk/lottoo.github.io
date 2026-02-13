@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>NEON CASINO | PROMO V9.7</title>
+    <title>NEON CASINO | COMPACT V9.9</title>
     <style>
         :root {
             --neon-green: #00ff88;
@@ -15,38 +15,35 @@
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; user-select: none; display: flex; justify-content: center; align-items: center; }
         #bg-canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.2; }
 
-        /* LAYOUT */
-        .main-wrapper { display: flex; gap: 20px; width: 1000px; height: 600px; z-index: 10; }
+        .main-wrapper { display: flex; gap: 20px; width: 1000px; height: 620px; z-index: 10; }
 
-        .chat-sidebar {
-            width: 280px; background: rgba(10, 10, 15, 0.9); border: 1px solid #222;
-            border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; backdrop-filter: blur(10px);
-        }
+        /* CHAT */
+        .chat-sidebar { width: 280px; background: rgba(10, 10, 15, 0.9); border: 1px solid #222; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; backdrop-filter: blur(10px); }
         #chat-content { flex: 1; padding: 15px; overflow-y: auto; font-size: 12px; text-align: left; }
         .chat-msg { margin-bottom: 10px; border-left: 2px solid var(--neon-purple); padding-left: 10px; }
 
-        .window {
-            background: rgba(10, 10, 15, 0.95); border: 1px solid var(--neon-blue);
-            border-radius: 12px; padding: 30px; flex: 1;
-            text-align: center; box-shadow: 0 0 40px rgba(0, 212, 255, 0.1);
-            backdrop-filter: blur(15px); position: relative;
-        }
+        /* WINDOW */
+        .window { background: rgba(10, 10, 15, 0.95); border: 1px solid var(--neon-blue); border-radius: 12px; padding: 30px; flex: 1; text-align: center; box-shadow: 0 0 40px rgba(0, 212, 255, 0.1); backdrop-filter: blur(15px); }
 
-        /* UI ELEMENTS */
-        .balance-box { font-size: 42px; color: var(--neon-green); text-shadow: 0 0 15px var(--neon-green); margin-bottom: 5px; font-weight: bold; }
-        .bal-up { color: var(--neon-green); text-shadow: 0 0 30px var(--neon-green); }
-        .bal-down { color: var(--neon-red); text-shadow: 0 0 30px var(--neon-red); }
-
+        /* BAL DISPLAY */
+        .balance-box { font-size: 52px; color: var(--neon-green); text-shadow: 0 0 15px var(--neon-green); margin-bottom: 5px; font-weight: bold; font-variant-numeric: tabular-nums; transition: 0.3s; }
+        .bal-up { color: var(--neon-green); text-shadow: 0 0 30px var(--neon-green); transform: scale(1.05); }
+        .bal-down { color: var(--neon-red); text-shadow: 0 0 30px var(--neon-red); transform: scale(0.95); }
+        
         button { background: rgba(0, 212, 255, 0.05); border: 1px solid var(--neon-blue); color: var(--neon-blue); padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-bottom: 10px; transition: 0.2s; }
         button:hover { background: var(--neon-blue); color: black; box-shadow: 0 0 15px var(--neon-blue); }
-        
-        input { background: #000; border: 1px solid #333; color: white; padding: 12px; width: 85%; border-radius: 5px; text-align: center; margin-bottom: 10px; outline: none; }
+        input { background: #000; border: 1px solid #333; color: white; padding: 12px; width: 85%; border-radius: 5px; text-align: center; margin-bottom: 10px; outline: none; font-weight: bold; }
         
         .hidden { display: none !important; }
-        .promo-area { margin-top: 15px; border-top: 1px solid #222; padding-top: 15px; }
+        .status-bar { margin: 10px 0; font-size: 13px; min-height: 20px; color: #888; }
+
+        /* MINES */
+        .mines-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 15px auto; width: 250px; }
+        .tile { width: 45px; height: 45px; background: rgba(255,255,255,0.03); border: 1px solid #222; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: 0.2s; }
+        .safe { background: var(--neon-green) !important; color: black; }
+        .bomb { background: var(--neon-red) !important; }
 
         .footer { position: fixed; bottom: 10px; width: 100%; text-align: center; font-size: 10px; color: #222; }
-        .footer span:hover { color: #555; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -55,56 +52,63 @@
 
     <div class="main-wrapper">
         <div class="chat-sidebar">
-            <div style="background: #111; padding: 12px; font-size: 11px; color: var(--neon-blue);">📡 LIVE FEED</div>
+            <div style="background: #111; padding: 12px; font-size: 11px; color: var(--neon-blue); font-weight: bold;">📡 NETWORK FEED</div>
             <div id="chat-content"></div>
         </div>
 
         <div class="window">
             <div class="balance-box" id="bal-display">$0</div>
-            <div style="font-size:11px; color:#444; margin-bottom:20px;">W: <span id="win-stat">0</span> | L: <span id="loss-stat">0</span></div>
+            <div style="font-size:11px; color:#444; margin-bottom:20px; letter-spacing: 2px;">W: <span id="win-stat">0</span> | L: <span id="loss-stat">0</span></div>
 
             <div id="menu-ui">
                 <button onclick="showUI('mines')">💣 NEON MINES</button>
                 <button onclick="showUI('chicken')">🐔 CHICKEN FLIP</button>
                 <button onclick="showUI('guess')">🔢 NUMBER GUESS</button>
-                
-                <div class="promo-area">
-                    <input type="text" id="promo-input" placeholder="ENTER PROMO CODE">
-                    <button onclick="redeemCode()" style="border-color: var(--neon-purple); color: var(--neon-purple);">REDEEM CODE</button>
+                <div style="margin-top:20px; border-top:1px solid #222; padding-top:15px;">
+                    <input type="text" id="promo-input" placeholder="ENTER CODE (e.g. START)">
+                    <button onclick="redeemCode()" style="border-color:var(--neon-purple); color:var(--neon-purple);">REDEEM</button>
                 </div>
             </div>
 
-            <div id="mines-ui" class="hidden">
-                <input type="text" id="mines-bet" placeholder="Bet">
-                <input type="number" id="mines-count" value="3">
-                <button onclick="startMines()">START</button>
-                <div id="mines-game" class="hidden"><div id="grid" style="display:grid; grid-template-columns:repeat(5,1fr); gap:5px; width:200px; margin:auto;"></div></div>
-                <button onclick="showUI('menu')" style="color:red">BACK</button>
-            </div>
-
             <div id="chicken-ui" class="hidden">
-                <div id="chick-emo" style="font-size:50px">🥚</div>
-                <input type="text" id="chick-bet" placeholder="Bet">
-                <button onclick="playChicken()">FLIP</button>
-                <button onclick="showUI('menu')" style="color:red">BACK</button>
+                <div id="chick-emo" style="font-size:60px; margin-bottom:10px;">🥚</div>
+                <input type="text" id="chick-bet" placeholder="Bet (e.g. 50k, 1m)">
+                <button onclick="playChicken()">START FLIP</button>
+                <button onclick="showUI('menu')" style="color:var(--neon-red); border-color:var(--neon-red);">BACK</button>
+                <div class="status-bar" id="chick-status"></div>
             </div>
 
             <div id="guess-ui" class="hidden">
-                <h1 id="guess-target">?</h1>
-                <input type="text" id="guess-bet" placeholder="Bet">
-                <input type="number" id="guess-val" placeholder="1-10">
-                <button onclick="playGuess()">GUESS</button>
-                <button onclick="showUI('menu')" style="color:red">BACK</button>
+                <h1 id="guess-target" style="font-size:50px; color:var(--neon-purple);">?</h1>
+                <input type="text" id="guess-bet" placeholder="Bet (e.g. 10k)">
+                <input type="number" id="guess-val" placeholder="Pick 1-10">
+                <button onclick="playGuess()">DECRYPT</button>
+                <button onclick="showUI('menu')" style="color:var(--neon-red); border-color:var(--neon-red);">BACK</button>
+                <div class="status-bar" id="guess-status"></div>
+            </div>
+
+            <div id="mines-ui" class="hidden">
+                <div id="mines-setup">
+                    <input type="text" id="mines-bet" placeholder="Bet (e.g. 1m)">
+                    <input type="number" id="mines-count" value="3" max="24">
+                    <button onclick="startMines()">SCAN GRID</button>
+                </div>
+                <div id="mines-game" class="hidden">
+                    <div class="mines-grid" id="grid"></div>
+                    <button id="cashout-btn" onclick="cashoutMines()" style="color:var(--neon-green); border-color:var(--neon-green);">CASHOUT</button>
+                </div>
+                <button onclick="showUI('menu')" style="color:var(--neon-red); border-color:var(--neon-red); margin-top:10px;">BACK</button>
+                <div class="status-bar" id="mines-status"></div>
             </div>
 
             <div id="admin-ui" class="hidden">
-                <h3>ADMIN OVERRIDE</h3>
+                <h3>SYSTEM SETTINGS</h3>
                 <input type="text" id="discord-url" placeholder="Webhook URL">
-                <hr style="border:0; border-top:1px solid #333; margin:10px;">
-                <input type="text" id="new-code-name" placeholder="Code (e.g. NEON2026)">
-                <input type="text" id="new-code-amt" placeholder="Amount (e.g. 50k)">
-                <button onclick="createCode()">CREATE PROMO CODE</button>
-                <button onclick="showUI('menu')">CLOSE</button>
+                <button onclick="saveWebhook()">SAVE WEBHOOK</button>
+                <input type="text" id="new-code-name" placeholder="Code Name">
+                <input type="text" id="new-code-amt" placeholder="Amount (e.g. 10b)">
+                <button onclick="createCode()">CREATE CODE</button>
+                <button onclick="showUI('menu')">EXIT</button>
             </div>
         </div>
     </div>
@@ -112,81 +116,176 @@
     <div class="footer">© 2026 | <span onclick="showUI('admin')">SECURE_LINK</span></div>
 
 <script>
-    let data = JSON.parse(localStorage.getItem('casino_v97')) || { 
-        bal: 1000, wins: 0, losses: 0, webhook: "", 
-        codes: {"START": 5000}, // Default code
-        usedCodes: [] 
+    let data = JSON.parse(localStorage.getItem('casino_v99_compact')) || { 
+        bal: 5000, wins: 0, losses: 0, webhook: "", codes: {"START": 10000}, usedCodes: [] 
     };
     let displayedBal = data.bal;
 
-    function save() {
-        localStorage.setItem('casino_v97', JSON.stringify(data));
-        animateBalance();
-        document.getElementById('win-stat').innerText = data.wins;
-        document.getElementById('loss-stat').innerText = data.losses;
+    // --- COMPACT NOTATION FORMATTER ---
+    function formatCompact(num) {
+        const absNum = Math.abs(num);
+        if (absNum >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+        if (absNum >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+        if (absNum >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+        if (absNum >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+        return num.toLocaleString();
     }
 
-    // --- DISCORD WEBHOOK ---
-    async function notifyDiscord(title, msg, color = 0x00d4ff) {
-        if (!data.webhook) return;
-        const payload = {
-            embeds: [{
-                title: title,
-                description: msg,
-                color: color,
-                fields: [{ name: "Current Balance", value: `$${new Intl.NumberFormat().format(data.bal)}` }],
-                timestamp: new Date()
-            }]
-        };
-        fetch(data.webhook, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    }
-
-    // --- CODE SYSTEM ---
-    function redeemCode() {
-        let input = document.getElementById('promo-input').value.toUpperCase().trim();
-        if (data.usedCodes.includes(input)) return alert("Code already used!");
-        
-        if (data.codes[input]) {
-            let amt = data.codes[input];
-            data.bal += amt;
-            data.usedCodes.push(input);
-            addChat("SYSTEM", `Promo Code ${input} redeemed for $${new Intl.NumberFormat().format(amt)}!`);
-            notifyDiscord("🎫 CODE REDEEMED", `User redeemed code **${input}** for **$${new Intl.NumberFormat().format(amt)}**`, 0xbc13fe);
-            document.getElementById('promo-input').value = "";
-            save();
-        } else {
-            alert("Invalid Code");
-        }
-    }
-
-    function createCode() {
-        let name = document.getElementById('new-code-name').value.toUpperCase().trim();
-        let amt = parse(document.getElementById('new-code-amt').value);
-        if (name && amt > 0) {
-            data.codes[name] = amt;
-            save();
-            alert(`Code ${name} created for $${amt}`);
-        }
-    }
-
-    // --- ANIMATION & UTILS ---
     function animateBalance() {
         const el = document.getElementById('bal-display');
         const diff = data.bal - displayedBal;
-        if (diff === 0) return;
-        diff > 0 ? el.className = 'balance-box bal-up' : el.className = 'balance-box bal-down';
+        if(diff === 0) return;
+
+        diff > 0 ? el.classList.add('bal-up') : el.classList.add('bal-down');
+        
         let count = 0;
-        const interval = setInterval(() => {
-            count++;
-            displayedBal += diff / 15;
-            el.innerText = `$${new Intl.NumberFormat().format(Math.floor(displayedBal))}`;
-            if (count >= 15) {
-                clearInterval(interval);
+        const intr = setInterval(() => {
+            displayedBal += diff / 12;
+            el.innerText = `$${formatCompact(Math.floor(displayedBal))}`;
+            if(++count >= 12) {
+                clearInterval(intr);
                 displayedBal = data.bal;
-                el.innerText = `$${new Intl.NumberFormat().format(data.bal)}`;
-                el.className = 'balance-box';
+                el.innerText = `$${formatCompact(data.bal)}`;
+                el.classList.remove('bal-up', 'bal-down');
             }
         }, 40);
+    }
+
+    // --- PARSER (Now handles K, M, B, T) ---
+    function parse(v) {
+        if (!v) return 0;
+        let s = v.toString().toLowerCase().replace(/[, ]/g, ''); 
+        let val = parseFloat(s.replace(/[^0-9.]/g, ''));
+        if (isNaN(val)) return 0;
+        if (s.endsWith('k')) val *= 1e3;
+        else if (s.endsWith('m')) val *= 1e6;
+        else if (s.endsWith('b')) val *= 1e9;
+        else if (s.endsWith('t')) val *= 1e12;
+        return Math.floor(val);
+    }
+
+    // --- GAME LOGIC ---
+    function playChicken() {
+        let bet = parse(document.getElementById('chick-bet').value);
+        if(bet <= 0 || bet > data.bal) return setStatus('chick-status', "INVALID FUNDS", "lose");
+        
+        data.bal -= bet; save(); // Deduct immediately for realism
+        let emo = document.getElementById('chick-emo');
+        emo.style.animation = "flip3D 0.6s infinite linear";
+        
+        setTimeout(() => {
+            emo.style.animation = "none";
+            if(Math.random() > 0.5) {
+                let win = bet * 2;
+                data.bal += win; data.wins++; emo.innerText = "🐔";
+                setStatus('chick-status', `WON $${formatCompact(win)}`, "win");
+                notifyDiscord("💰 CHICKEN WIN", `Won $${formatCompact(win)}`);
+            } else {
+                data.losses++; emo.innerText = "🍗";
+                setStatus('chick-status', "ROASTED", "lose");
+                notifyDiscord("💀 CHICKEN LOSS", `Lost $${formatCompact(bet)}`);
+            }
+            save();
+        }, 1200);
+    }
+
+    function playGuess() {
+        let bet = parse(document.getElementById('guess-bet').value);
+        let val = parseInt(document.getElementById('guess-val').value);
+        if(bet <= 0 || bet > data.bal || isNaN(val)) return;
+        
+        data.bal -= bet; save();
+        let target = document.getElementById('guess-target');
+        target.innerText = "??";
+        
+        setTimeout(() => {
+            let res = Math.floor(Math.random() * 10) + 1;
+            target.innerText = res;
+            if(val === res) {
+                let win = bet * 5;
+                data.bal += win; data.wins++;
+                setStatus('guess-status', `CRACKED! $${formatCompact(win)}`, "win");
+                notifyDiscord("🎰 GUESS WIN", `Won $${formatCompact(win)}`);
+            } else {
+                data.losses++;
+                setStatus('guess-status', "DENIED", "lose");
+                notifyDiscord("📉 GUESS LOSS", `Lost $${formatCompact(bet)}`);
+            }
+            save();
+        }, 1000);
+    }
+
+    let mAct=false, mBet=0, mList=[], mRev=0;
+    function startMines() {
+        mBet = parse(document.getElementById('mines-bet').value);
+        let count = parseInt(document.getElementById('mines-count').value);
+        if(mBet <= 0 || mBet > data.bal || count >= 25) return;
+        
+        data.bal -= mBet; mRev = 0; mAct = true; mList = []; save();
+        document.getElementById('mines-setup').classList.add('hidden');
+        document.getElementById('mines-game').classList.remove('hidden');
+        const g = document.getElementById('grid'); g.innerHTML = "";
+        
+        while(mList.length < count) { let r=Math.floor(Math.random()*25); if(!mList.includes(r)) mList.push(r); }
+        
+        for(let i=0; i<25; i++) {
+            let t = document.createElement('div'); t.className="tile";
+            t.onclick = () => {
+                if(!mAct || t.innerText!=="") return;
+                if(mList.includes(i)) {
+                    mAct = false; t.classList.add('bomb'); t.innerText="💣";
+                    setStatus('mines-status', "BOOM", "lose");
+                    notifyDiscord("💣 MINES EXPLODED", `Lost $${formatCompact(mBet)}`);
+                } else {
+                    t.classList.add('safe'); t.innerText="💎"; mRev++;
+                    let mult = 1 + (mRev * (count * 0.25));
+                    document.getElementById('cashout-btn').innerText = `CASHOUT $${formatCompact(Math.floor(mBet*mult))}`;
+                }
+            };
+            g.appendChild(t);
+        }
+    }
+
+    function cashoutMines() {
+        if(!mAct || mRev === 0) return;
+        let count = parseInt(document.getElementById('mines-count').value);
+        let win = Math.floor(mBet * (1 + (mRev * (count * 0.25))));
+        data.bal += win; data.wins++; mAct = false; save();
+        notifyDiscord("💎 MINES CASHOUT", `Won $${formatCompact(win)}`);
+        showUI('menu');
+    }
+
+    // --- OTHER SYSTEMS ---
+    function save() {
+        localStorage.setItem('casino_v99_compact', JSON.stringify(data));
+        document.getElementById('win-stat').innerText = data.wins;
+        document.getElementById('loss-stat').innerText = data.losses;
+        animateBalance();
+    }
+
+    function redeemCode() {
+        let code = document.getElementById('promo-input').value.toUpperCase();
+        if(data.codes[code] && !data.usedCodes.includes(code)) {
+            let amt = data.codes[code];
+            data.bal += amt; data.usedCodes.push(code);
+            notifyDiscord("🎫 CODE USED", `Code ${code} for $${formatCompact(amt)}`, 0xbc13fe);
+            addChat("SYSTEM", `Code ${code} Accepted: +$${formatCompact(amt)}`);
+            save();
+            document.getElementById('promo-input').value = "";
+        } else { alert("Invalid or Used"); }
+    }
+
+    function createCode() {
+        let n = document.getElementById('new-code-name').value.toUpperCase();
+        let a = parse(document.getElementById('new-code-amt').value);
+        if(n && a > 0) { data.codes[n] = a; save(); alert("Code Created"); }
+    }
+
+    async function notifyDiscord(title, msg, color=0x00d4ff) {
+        if (!data.webhook) return;
+        fetch(data.webhook, { method: 'POST', headers: {'Content-Type':'application/json'}, 
+            body: JSON.stringify({embeds:[{title, description:msg, color, timestamp:new Date(), footer:{text:`Balance: $${formatCompact(data.bal)}`}}]}) 
+        });
     }
 
     function addChat(u, m) {
@@ -198,23 +297,16 @@
         c.scrollTop = c.scrollHeight;
     }
 
-    function parse(v) {
-        let s = v.toString().toLowerCase().replace(/[, ]/g, ''); 
-        let n = parseFloat(s.replace(/[^0-9.]/g, ''));
-        if (s.includes('k')) n *= 1e3;
-        if (s.includes('m')) n *= 1e6;
-        if (s.includes('b')) n *= 1e9;
-        return Math.floor(n) || 0;
-    }
-
     function showUI(id) {
         ['menu-ui','chicken-ui','guess-ui','mines-ui','admin-ui'].forEach(u => document.getElementById(u).classList.add('hidden'));
         document.getElementById(id + '-ui').classList.remove('hidden');
     }
 
-    // Initial Load
-    document.getElementById('bal-display').innerText = `$${new Intl.NumberFormat().format(data.bal)}`;
-    addChat("SYSTEM", "Promo Engine v9.7 Online. Use code 'START' for $5,000.");
+    function saveWebhook() { data.webhook = document.getElementById('discord-url').value; save(); alert("Webhook Saved"); }
+
+    // Startup
+    document.getElementById('bal-display').innerText = `$${formatCompact(data.bal)}`;
+    addChat("SYSTEM", "Compact Display Mode Active. Type 'START' to redeem.");
 </script>
 </body>
 </html>
