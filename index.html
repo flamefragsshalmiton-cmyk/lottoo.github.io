@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NEON CASINO | ULTIMATE V9.6</title>
+    <style>
+        :root {
+            --neon-green: #00ff88;
+            --neon-blue: #00d4ff;
+            --neon-purple: #bc13fe;
+            --neon-red: #ff3e3e;
+            --bg: #050508;
+        }
+
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; user-select: none; display: flex; justify-content: center; align-items: center; }
+        #bg-canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.2; }
+
+        /* MAIN LAYOUT */
+        .main-wrapper { display: flex; gap: 20px; width: 950px; height: 600px; z-index: 10; align-items: stretch; }
+
+        /* CHAT SIDEBAR */
+        .chat-sidebar {
+            width: 280px; background: rgba(10, 10, 15, 0.9); border: 1px solid #222;
+            border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; backdrop-filter: blur(10px);
+        }
+        .chat-header { background: #111; padding: 12px; font-size: 11px; color: var(--neon-blue); border-bottom: 1px solid #222; font-weight: bold; letter-spacing: 1px; }
+        #chat-content { flex: 1; padding: 15px; overflow-y: auto; font-size: 12px; text-align: left; scroll-behavior: smooth; }
+        .chat-msg { margin-bottom: 10px; border-left: 2px solid var(--neon-purple); padding-left: 10px; animation: fadeIn 0.3s ease; }
+        .chat-msg b { color: var(--neon-blue); }
+        .chat-input-area { padding: 10px; background: #000; border-top: 1px solid #222; }
+        #chat-input { background: #0a0a0a; border: 1px solid #333; color: white; width: 90%; padding: 8px; border-radius: 4px; outline: none; font-size: 12px; }
+
+        /* GAME WINDOW */
+        .window {
+            background: rgba(10, 10, 15, 0.95); border: 1px solid var(--neon-blue);
+            border-radius: 12px; padding: 30px; flex: 1;
+            text-align: center; box-shadow: 0 0 40px rgba(0, 212, 255, 0.1);
+            backdrop-filter: blur(15px); position: relative; display: flex; flex-direction: column; justify-content: center;
+        }
+
+        /* ANIMATIONS */
+        @keyframes flip3D { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); } }
+        @keyframes scramble { 0% { opacity: 0.4; transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .anim-flip { animation: flip3D 0.6s infinite linear; }
+        .anim-scramble { animation: scramble 0.1s infinite alternate; }
+
+        /* UI ELEMENTS */
+        .balance-box { font-size: 42px; color: var(--neon-green); text-shadow: 0 0 15px var(--neon-green); margin-bottom: 5px; font-weight: bold; transition: 0.3s; }
+        .bal-up { color: var(--neon-green); text-shadow: 0 0 30px var(--neon-green); }
+        .bal-down { color: var(--neon-red); text-shadow: 0 0 30px var(--neon-red); }
+
+        button { background: rgba(0, 212, 255, 0.05); border: 1px solid var(--neon-blue); color: var(--neon-blue); padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-bottom: 10px; transition: 0.2s; }
+        button:hover { background: var(--neon-blue); color: black; box-shadow: 0 0 15px var(--neon-blue); }
+        
+        input { background: #000; border: 1px solid #333; color: white; padding: 12px; width: 85%; border-radius: 5px; text-align: center; margin-bottom: 10px; outline: none; }
+        
+        .hidden { display: none !important; }
+        .status-bar { margin-top: 15px; font-size: 13px; min-height: 20px; color: #666; font-weight: 500; }
+
+        /* MINES GRID */
+        .mines-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 15px auto; width: 250px; }
+        .tile { width: 45px; height: 45px; background: rgba(255,255,255,0.03); border: 1px solid #222; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; font-size: 18px; }
+        .tile:hover { background: rgba(255,255,255,0.08); border-color: var(--neon-blue); }
+        .safe { background: var(--neon-green) !important; color: black; box-shadow: 0 0 10px var(--neon-green); }
+        .bomb { background: var(--neon-red) !important; box-shadow: 0 0 15px var(--neon-red); }
+
+        .footer { position: fixed; bottom: 10px; width: 100%; text-align: center; font-size: 10px; color: #222; }
+        .footer span:hover { color: #555; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="main-wrapper">
+        <div class="chat-sidebar">
+            <div class="chat-header">📡 LIVE TERMINAL FEED</div>
+            <div id="chat-content"></div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Type message..." onkeypress="if(event.key==='Enter') sendChat()">
+            </div>
+        </div>
+
+        <div class="window">
+            <div class="balance-box" id="bal-display">$0</div>
+            <div style="font-size:11px; color:#444; margin-bottom:25px; letter-spacing: 2px;">WINS: <span id="win-stat" style="color:#888">0</span> | LOSSES: <span id="loss-stat" style="color:#888">0</span></div>
+
+            <div id="menu-ui">
+                <button onclick="showUI('mines')">💣 NEON MINES</button>
+                <button onclick="showUI('chicken')">🐔 CHICKEN FLIP</button>
+                <button onclick="showUI('guess')">🔢 NUMBER GUESS</button>
+            </div>
+
+            <div id="chicken-ui" class="hidden">
+                <div id="chick-emo" style="font-size: 60px; margin-bottom: 20px; display: inline-block;">🥚</div>
+                <input type="text" id="chick-bet" placeholder="Bet Amount">
+                <button onclick="playChicken()">FLIP CHICKEN</button>
+                <button onclick="showUI('menu')" style="color:var(--neon-red); border-color:var(--neon-red);">BACK</button>
+                <div class="status-bar" id="chick-status">Select your wager.</div>
+            </div>
+
+            <div id="guess-ui" class="hidden">
+                <h2 id="guess-target" style="font-size: 50px; margin: 10px; color: var(--neon-purple);">?</h2>
+                <input type="text" id="guess-bet" placeholder="Bet Amount">
+                <input type="number" id="guess-val" placeholder="Pick 1-10">
+                <button onclick="playGuess()">DECRYPT NUMBER</button>
+                <button onclick="showUI('menu')" style="color:var(--neon-red); border-color:var(--neon-red);">BACK</button>
+                <div class="status-bar" id="guess-status">5x Multiplier for correct guess.</div>
+            </div>
+
+            <div id="mines-ui" class="hidden">
+                <div id="mines-setup">
+                    <input type="text" id="mines-bet" placeholder="Bet Amount">
+                    <input type="number" id="mines-count" value="3" max="24" min="1">
+                    <button onclick="startMines()">SCAN GRID</button>
+                </div>
+                <div id="mines-game" class="hidden">
+                    <div class="mines-grid" id="grid"></div>
+                    <button id="cashout-btn" onclick="cashoutMines()" style="color:var(--neon-green); border-color:var(--neon-green);">CASHOUT</button>
+                </div>
+                <button onclick="showUI('menu')" style="color:var(--neon-red); border-color:var(--neon-red); margin-top:5px;">BACK</button>
+                <div class="status-bar" id="mines-status">Grid initialized.</div>
+            </div>
+
+            <div id="admin-ui" class="hidden">
+                <h3 style="color:var(--neon-purple)">NETWORK CONFIG</h3>
+                <input type="text" id="discord-url" placeholder="Discord Webhook URL">
+                <button onclick="saveWebhook()">UPDATE WEBHOOK</button>
+                <input type="text" id="inj-amt" placeholder="Inject Amount">
+                <button onclick="injectFunds()">INJECT CASH</button>
+                <button onclick="showUI('menu')">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2026 NEON CORP | <span onclick="showUI('admin')">SECURE_LINK</span>
+    </div>
+
+<script>
+    let data = JSON.parse(localStorage.getItem('casino_v96_final')) || { bal: 1000, wins: 0, losses: 0, webhook: "" };
+    let displayedBal = data.bal;
+
+    // --- WEBHOOK NOTIFICATIONS ---
+    async function notifyDiscord(type, amount, game) {
+        if (!data.webhook) return;
+        const payload = {
+            embeds: [{
+                title: type === 'WIN' ? "🟢 TRANSACTION: CREDIT" : "🔴 TRANSACTION: DEBIT",
+                color: type === 'WIN' ? 0x00ff88 : 0xff3e3e,
+                fields: [
+                    { name: "Game", value: game, inline: true },
+                    { name: "Amount", value: `$${new Intl.NumberFormat().format(amount)}`, inline: true },
+                    { name: "New Balance", value: `$${new Intl.NumberFormat().format(data.bal)}`, inline: false }
+                ],
+                timestamp: new Date()
+            }]
+        };
+        try { await fetch(data.webhook, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); } catch (e) {}
+    }
+
+    // --- CHAT SYSTEM ---
+    const bots = ["Viper_01", "Ghost_Root", "Binary_God", "Shadow_X", "Net_Runner"];
+    const botTalk = ["Mines is hitting hard today!", "Just lost my rent money lol", "Anyone found the secret admin yet?", "System feels lucky...", "Going all in on Chicken!"];
+
+    function addChat(user, msg) {
+        const cont = document.getElementById('chat-content');
+        const div = document.createElement('div');
+        div.className = 'chat-msg';
+        div.innerHTML = `<b>${user}</b>: ${msg}`;
+        cont.appendChild(div);
+        cont.scrollTop = cont.scrollHeight;
+    }
+
+    function sendChat() {
+        const input = document.getElementById('chat-input');
+        if (!input.value) return;
+        addChat("LocalUser", input.value);
+        input.value = "";
+    }
+
+    setInterval(() => { if(Math.random() > 0.85) addChat(bots[Math.floor(Math.random()*bots.length)], botTalk[Math.floor(Math.random()*botTalk.length)]); }, 6000);
+
+    // --- CORE ENGINE ---
+    function save() {
+        localStorage.setItem('casino_v96_final', JSON.stringify(data));
+        updateStats();
+        animateBalance();
+    }
+
+    function animateBalance() {
+        const el = document.getElementById('bal-display');
+        const diff = data.bal - displayedBal;
+        if (diff === 0) return;
+        diff > 0 ? el.className = 'balance-box bal-up' : el.className = 'balance-box bal-down';
+        let count = 0;
+        const interval = setInterval(() => {
+            count++;
+            displayedBal += diff / 15;
+            el.innerText = `$${new Intl.NumberFormat().format(Math.floor(displayedBal))}`;
+            if (count >= 15) {
+                clearInterval(interval);
+                displayedBal = data.bal;
+                el.innerText = `$${new Intl.NumberFormat().format(data.bal)}`;
+                el.className = 'balance-box';
+            }
+        }, 40);
+    }
+
+    function parse(v) {
+        let s = v.toString().toLowerCase().replace(/[, ]/g, ''); 
+        let n = parseFloat(s.replace(/[^0-9.]/g, ''));
+        if (s.includes('k')) n *= 1e3;
+        else if (s.includes('m')) n *= 1e6;
+        else if (s.includes('b')) n *= 1e9;
+        else if (s.includes('t')) n *= 1e12;
+        return Math.floor(n) || 0;
+    }
+
+    // --- GAMES ---
+    function playChicken() {
+        let bet = parse(document.getElementById('chick-bet').value);
+        if(bet <= 0 || bet > data.bal) return setStatus('chick-status', "INVALID FUNDS", "lose");
+        let emo = document.getElementById('chick-emo');
+        emo.classList.add('anim-flip');
+        setStatus('chick-status', "COIN SPINNING...", "none");
+        setTimeout(() => {
+            emo.classList.remove('anim-flip');
+            if(Math.random() > 0.5) {
+                data.bal += bet; data.wins++; emo.innerText = "🐔";
+                setStatus('chick-status', "VICTORY!", "win");
+                notifyDiscord("WIN", bet, "Chicken Flip");
+                addChat("SYSTEM", `Big win: $${bet} on Chicken!`);
+            } else {
+                data.bal -= bet; data.losses++; emo.innerText = "🍗";
+                setStatus('chick-status', "ROASTED.", "lose");
+                notifyDiscord("LOSS", bet, "Chicken Flip");
+            }
+            save();
+        }, 1200);
+    }
+
+    function playGuess() {
+        let bet = parse(document.getElementById('guess-bet').value);
+        let val = parseInt(document.getElementById('guess-val').value);
+        if(bet <= 0 || bet > data.bal || isNaN(val)) return;
+        let target = document.getElementById('guess-target');
+        target.classList.add('anim-scramble');
+        setTimeout(() => {
+            target.classList.remove('anim-scramble');
+            let res = Math.floor(Math.random() * 10) + 1;
+            target.innerText = res;
+            if(val === res) { 
+                data.bal += (bet * 4); data.wins++; 
+                notifyDiscord("WIN", bet * 4, "Guess Number");
+                setStatus('guess-status', "MATCH FOUND!", "win");
+            } else { 
+                data.bal -= bet; data.losses++; 
+                notifyDiscord("LOSS", bet, "Guess Number");
+                setStatus('guess-status', "ACCESS DENIED", "lose");
+            }
+            save();
+        }, 1500);
+    }
+
+    let mAct = false, mBet = 0, mList = [], mRev = 0;
+    function startMines() {
+        mBet = parse(document.getElementById('mines-bet').value);
+        let count = parseInt(document.getElementById('mines-count').value);
+        if(mBet <= 0 || mBet > data.bal) return;
+        data.bal -= mBet; save();
+        document.getElementById('mines-setup').classList.add('hidden');
+        document.getElementById('mines-game').classList.remove('hidden');
+        const g = document.getElementById('grid'); g.innerHTML = "";
+        mList = []; mRev = 0; mAct = true;
+        while(mList.length < count) { let r = Math.floor(Math.random() * 25); if(!mList.includes(r)) mList.push(r); }
+        for(let i=0; i<25; i++) {
+            let t = document.createElement('div'); t.className = "tile";
+            t.onclick = () => {
+                if(!mAct || t.classList.contains('safe')) return;
+                if(mList.includes(i)) {
+                    mAct = false; t.classList.add('bomb'); t.innerText = "💣";
+                    document.querySelectorAll('.tile').forEach((tile,idx)=>{ if(mList.includes(idx)){ tile.classList.add('bomb'); tile.innerText="💣";} });
+                    data.losses++; save(); notifyDiscord("LOSS", mBet, "Mines");
+                } else {
+                    t.classList.add('safe'); t.innerText = "💎"; mRev++;
+                    let ml = (1 + (mRev * (count * 0.15)));
+                    document.getElementById('cashout-btn').innerText = `CASHOUT $${new Intl.NumberFormat().format(Math.floor(mBet * ml))}`;
+                }
+            };
+            g.appendChild(t);
+        }
+    }
+
+    function cashoutMines() {
+        if(!mAct || mRev === 0) return;
+        let count = parseInt(document.getElementById('mines-count').value);
+        let win = Math.floor(mBet * (1 + (mRev * (count * 0.15))));
+        data.bal += win; data.wins++; mAct = false; save(); 
+        notifyDiscord("WIN", win, "Mines");
+        addChat("SYSTEM", `User extracted $${win} from the grid!`);
+        setTimeout(() => showUI('menu'), 800);
+    }
+
+    // --- BACKGROUND ---
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let w = canvas.width = window.innerWidth, h = canvas.height = window.innerHeight;
+    const yPos = Array(Math.floor(w / 20)).fill(0);
+    function rain() {
+        ctx.fillStyle = 'rgba(5, 5, 8, 0.15)'; ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#00d4ff'; ctx.font = '15px monospace';
+        yPos.forEach((y, i) => {
+            ctx.fillText(String.fromCharCode(Math.random() * 128), i * 20, y);
+            yPos[i] = (y > 100 + Math.random() * 10000) ? 0 : y + 20;
+        });
+    }
+    setInterval(rain, 50);
+
+    // --- SETUP ---
+    function showUI(id) {
+        ['menu-ui','chicken-ui','guess-ui','mines-ui','admin-ui'].forEach(u => document.getElementById(u).classList.add('hidden'));
+        document.getElementById(id + '-ui').classList.remove('hidden');
+        if(id === 'mines') { document.getElementById('mines-setup').classList.remove('hidden'); document.getElementById('mines-game').classList.add('hidden'); }
+    }
+    function setStatus(id, msg, type) {
+        let s = document.getElementById(id); s.innerText = msg;
+        s.style.color = type==='win'?'#00ff88':type==='lose'?'#ff3e3e':'#888';
+    }
+    function saveWebhook() { data.webhook = document.getElementById('discord-url').value; save(); alert("Webhook Linked."); }
+    function injectFunds() { data.bal += parse(document.getElementById('inj-amt').value); save(); }
+    function updateStats() { document.getElementById('win-stat').innerText = data.wins; document.getElementById('loss-stat').innerText = data.losses; }
+
+    updateStats();
+    document.getElementById('bal-display').innerText = `$${new Intl.NumberFormat().format(data.bal)}`;
+    addChat("SYSTEM", "Encrypted Tunnel Established...");
+</script>
+</body>
+</html>
