@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>NEON CASINO | COMPACT V9.9</title>
+    <title>NEON CASINO | V11.3 CRASH</title>
     <style>
         :root {
             --neon-green: #00ff88;
@@ -12,301 +12,252 @@
             --bg: #050508;
         }
 
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; user-select: none; display: flex; justify-content: center; align-items: center; }
-        #bg-canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.2; }
-
-        .main-wrapper { display: flex; gap: 20px; width: 1000px; height: 620px; z-index: 10; }
-
-        /* CHAT */
-        .chat-sidebar { width: 280px; background: rgba(10, 10, 15, 0.9); border: 1px solid #222; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; backdrop-filter: blur(10px); }
-        #chat-content { flex: 1; padding: 15px; overflow-y: auto; font-size: 12px; text-align: left; }
-        .chat-msg { margin-bottom: 10px; border-left: 2px solid var(--neon-purple); padding-left: 10px; }
-
-        /* WINDOW */
-        .window { background: rgba(10, 10, 15, 0.95); border: 1px solid var(--neon-blue); border-radius: 12px; padding: 30px; flex: 1; text-align: center; box-shadow: 0 0 40px rgba(0, 212, 255, 0.1); backdrop-filter: blur(15px); }
-
-        /* BAL DISPLAY */
-        .balance-box { font-size: 52px; color: var(--neon-green); text-shadow: 0 0 15px var(--neon-green); margin-bottom: 5px; font-weight: bold; font-variant-numeric: tabular-nums; transition: 0.3s; }
-        .bal-up { color: var(--neon-green); text-shadow: 0 0 30px var(--neon-green); transform: scale(1.05); }
-        .bal-down { color: var(--neon-red); text-shadow: 0 0 30px var(--neon-red); transform: scale(0.95); }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: 'Consolas', monospace; color: white; user-select: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         
-        button { background: rgba(0, 212, 255, 0.05); border: 1px solid var(--neon-blue); color: var(--neon-blue); padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-bottom: 10px; transition: 0.2s; }
+        .main-wrapper { display: flex; gap: 20px; width: 1200px; height: 720px; z-index: 10; margin-bottom: 20px; }
+        
+        .sidebar { width: 320px; background: rgba(10, 10, 15, 0.95); border: 1px solid #222; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        #chat-content { flex: 1; padding: 15px; overflow-y: auto; font-size: 10px; color: #555; }
+        .service-pixel { position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; background: transparent; cursor: pointer; z-index: 100; }
+
+        .window { background: rgba(10, 10, 15, 0.98); border: 2px solid var(--neon-blue); border-radius: 15px; padding: 40px; flex: 1; text-align: center; position: relative; box-shadow: 0 0 50px rgba(0, 212, 255, 0.1); }
+        .balance-box { font-size: 64px; color: var(--neon-green); text-shadow: 0 0 20px var(--neon-green); margin-bottom: 25px; font-weight: 900; }
+        
+        /* CRASH GRAPH AREA */
+        #crash-box { height: 220px; background: #000; border: 1px solid #222; border-radius: 10px; margin-bottom: 20px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        #crash-mult { font-size: 72px; font-weight: bold; z-index: 5; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
+        #crash-progress { position: absolute; bottom: 0; left: 0; height: 5px; background: var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue); transition: width 0.1s linear; }
+
+        footer { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; border-top: 1px solid #111; padding: 8px 20px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #444; transition: 0.3s; }
+        .footer-flash-win { background: rgba(0, 255, 136, 0.2) !important; color: white !important; }
+        .footer-flash-loss { background: rgba(255, 62, 62, 0.2) !important; color: white !important; }
+
+        button { background: rgba(0, 212, 255, 0.05); border: 1px solid var(--neon-blue); color: var(--neon-blue); padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-bottom: 10px; transition: 0.2s; }
         button:hover { background: var(--neon-blue); color: black; box-shadow: 0 0 15px var(--neon-blue); }
-        input { background: #000; border: 1px solid #333; color: white; padding: 12px; width: 85%; border-radius: 5px; text-align: center; margin-bottom: 10px; outline: none; font-weight: bold; }
         
+        input { background: #000; border: 1px solid #333; color: white; padding: 12px; width: 90%; border-radius: 5px; text-align: center; margin-bottom: 15px; outline: none; }
         .hidden { display: none !important; }
-        .status-bar { margin: 10px 0; font-size: 13px; min-height: 20px; color: #888; }
 
-        /* MINES */
-        .mines-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 15px auto; width: 250px; }
-        .tile { width: 45px; height: 45px; background: rgba(255,255,255,0.03); border: 1px solid #222; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: 0.2s; }
+        .mines-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 20px auto; width: 280px; }
+        .tile { width: 48px; height: 48px; background: #111; border: 1px solid #222; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; }
         .safe { background: var(--neon-green) !important; color: black; }
         .bomb { background: var(--neon-red) !important; }
-
-        .footer { position: fixed; bottom: 10px; width: 100%; text-align: center; font-size: 10px; color: #222; }
     </style>
 </head>
 <body>
 
-    <canvas id="bg-canvas"></canvas>
-
     <div class="main-wrapper">
-        <div class="chat-sidebar">
-            <div style="background: #111; padding: 12px; font-size: 11px; color: var(--neon-blue); font-weight: bold;">📡 NETWORK FEED</div>
+        <div class="sidebar">
+            <div style="background: #111; padding: 15px; font-size: 10px; color: var(--neon-blue); font-weight: bold;">📡 NETWORK_V11.3_CRASH_READY</div>
             <div id="chat-content"></div>
+            <div class="service-pixel" onclick="neuralScan()"></div>
         </div>
 
         <div class="window">
             <div class="balance-box" id="bal-display">$0</div>
-            <div style="font-size:11px; color:#444; margin-bottom:20px; letter-spacing: 2px;">W: <span id="win-stat">0</span> | L: <span id="loss-stat">0</span></div>
-
+            
             <div id="menu-ui">
+                <button onclick="showUI('crash')" style="border-color:var(--neon-purple); color:var(--neon-purple);">🚀 CRASH SYSTEM</button>
                 <button onclick="showUI('mines')">💣 NEON MINES</button>
                 <button onclick="showUI('chicken')">🐔 CHICKEN FLIP</button>
-                <button onclick="showUI('guess')">🔢 NUMBER GUESS</button>
-                <div style="margin-top:20px; border-top:1px solid #222; padding-top:15px;">
-                    <input type="text" id="promo-input" placeholder="ENTER CODE (e.g. START)">
-                    <button onclick="redeemCode()" style="border-color:var(--neon-purple); color:var(--neon-purple);">REDEEM</button>
+                <button onclick="enterVoid()" style="border-color:var(--neon-red); color:var(--neon-red);">🌌 THE VOID</button>
+                <button onclick="showUI('pay')" style="border-color: var(--neon-green); color: var(--neon-green);">💳 DEPOSIT</button>
+            </div>
+
+            <div id="crash-ui" class="hidden">
+                <div id="crash-box">
+                    <div id="crash-progress"></div>
+                    <div id="crash-mult">1.00x</div>
                 </div>
-            </div>
-
-            <div id="chicken-ui" class="hidden">
-                <div id="chick-emo" style="font-size:60px; margin-bottom:10px;">🥚</div>
-                <input type="text" id="chick-bet" placeholder="Bet (e.g. 50k, 1m)">
-                <button onclick="playChicken()">START FLIP</button>
-                <button onclick="showUI('menu')" style="color:var(--neon-red); border-color:var(--neon-red);">BACK</button>
-                <div class="status-bar" id="chick-status"></div>
-            </div>
-
-            <div id="guess-ui" class="hidden">
-                <h1 id="guess-target" style="font-size:50px; color:var(--neon-purple);">?</h1>
-                <input type="text" id="guess-bet" placeholder="Bet (e.g. 10k)">
-                <input type="number" id="guess-val" placeholder="Pick 1-10">
-                <button onclick="playGuess()">DECRYPT</button>
-                <button onclick="showUI('menu')" style="color:var(--neon-red); border-color:var(--neon-red);">BACK</button>
-                <div class="status-bar" id="guess-status"></div>
+                <input type="text" id="crash-bet" placeholder="Bet Amount">
+                <button id="crash-action-btn" onclick="handleCrashAction()">PLACE BET</button>
+                <button onclick="showUI('menu')">BACK</button>
             </div>
 
             <div id="mines-ui" class="hidden">
                 <div id="mines-setup">
-                    <input type="text" id="mines-bet" placeholder="Bet (e.g. 1m)">
-                    <input type="number" id="mines-count" value="3" max="24">
-                    <button onclick="startMines()">SCAN GRID</button>
+                    <input type="text" id="mines-bet" placeholder="Bet Amount"><input type="number" id="mines-count" value="3">
+                    <button onclick="startMines()">START</button>
                 </div>
-                <div id="mines-game" class="hidden">
-                    <div class="mines-grid" id="grid"></div>
-                    <button id="cashout-btn" onclick="cashoutMines()" style="color:var(--neon-green); border-color:var(--neon-green);">CASHOUT</button>
-                </div>
-                <button onclick="showUI('menu')" style="color:var(--neon-red); border-color:var(--neon-red); margin-top:10px;">BACK</button>
-                <div class="status-bar" id="mines-status"></div>
+                <div id="mines-game" class="hidden"><div class="mines-grid" id="grid"></div><button id="cashout-btn" onclick="cashoutMines()">CASHOUT</button></div>
+                <button onclick="exitMines()" style="color:var(--neon-red);">BACK</button>
+            </div>
+
+            <div id="chicken-ui" class="hidden">
+                <div id="chick-display" style="font-size: 80px; margin: 20px;">🥚</div>
+                <input type="text" id="chick-bet" placeholder="Bet Amount">
+                <button onclick="playChicken()">FLIP (2x)</button>
+                <button onclick="showUI('menu')">BACK</button>
             </div>
 
             <div id="admin-ui" class="hidden">
-                <h3>SYSTEM SETTINGS</h3>
-                <input type="text" id="discord-url" placeholder="Webhook URL">
-                <button onclick="saveWebhook()">SAVE WEBHOOK</button>
-                <input type="text" id="new-code-name" placeholder="Code Name">
-                <input type="text" id="new-code-amt" placeholder="Amount (e.g. 10b)">
-                <button onclick="createCode()">CREATE CODE</button>
-                <button onclick="showUI('menu')">EXIT</button>
+                <input type="text" id="adm-bal" placeholder="Balance"><button onclick="adminSetBal()">SET</button>
+                <input type="text" id="hook-url" placeholder="Webhook URL"><button onclick="saveAdmin()">SAVE</button>
+                <button onclick="showUI('menu')">BACK</button>
             </div>
+            <div id="pay-ui" class="hidden"><input type="text" id="pay-amt"><button onclick="processPayment()">DEPOSIT</button></div>
         </div>
     </div>
 
-    <div class="footer">© 2026 | <span onclick="showUI('admin')">SECURE_LINK</span></div>
+    <footer id="footer">
+        <div class="footer-left">CORE: <span>CRASH_RESTORED</span> | WH: <span id="wh-stat">OFF</span></div>
+        <div class="footer-right">© 2026 | <span onclick="showUI('admin')">ROOT_ACCESS_0X</span></div>
+    </footer>
 
 <script>
-    let data = JSON.parse(localStorage.getItem('casino_v99_compact')) || { 
-        bal: 5000, wins: 0, losses: 0, webhook: "", codes: {"START": 10000}, usedCodes: [] 
-    };
-    let displayedBal = data.bal;
+    const KEY = 'neon_v113_crash';
+    let data = JSON.parse(localStorage.getItem(KEY)) || { bal: 50000, webhook: "", wins: 0, losses: 0 };
+    let mAct=false, mBet=0, mList=[], mRev=0, isVoid=false;
+    
+    // CRASH VARS
+    let crashActive = false, crashBet = 0, currentMult = 1.0, crashInterval = null, crashPoint = 0;
 
-    // --- COMPACT NOTATION FORMATTER ---
-    function formatCompact(num) {
-        const absNum = Math.abs(num);
-        if (absNum >= 1e12) return (num / 1e12).toFixed(2) + 'T';
-        if (absNum >= 1e9) return (num / 1e9).toFixed(2) + 'B';
-        if (absNum >= 1e6) return (num / 1e6).toFixed(2) + 'M';
-        if (absNum >= 1e3) return (num / 1e3).toFixed(2) + 'K';
-        return num.toLocaleString();
+    function save(type) {
+        localStorage.setItem(KEY, JSON.stringify(data));
+        document.getElementById('bal-display').innerText = `$${format(data.bal)}`;
+        document.getElementById('wh-stat').innerText = data.webhook ? "ON" : "OFF";
+        if(type==='win') flashFooter('footer-flash-win');
+        if(type==='loss') flashFooter('footer-flash-loss');
     }
 
-    function animateBalance() {
-        const el = document.getElementById('bal-display');
-        const diff = data.bal - displayedBal;
-        if(diff === 0) return;
-
-        diff > 0 ? el.classList.add('bal-up') : el.classList.add('bal-down');
-        
-        let count = 0;
-        const intr = setInterval(() => {
-            displayedBal += diff / 12;
-            el.innerText = `$${formatCompact(Math.floor(displayedBal))}`;
-            if(++count >= 12) {
-                clearInterval(intr);
-                displayedBal = data.bal;
-                el.innerText = `$${formatCompact(data.bal)}`;
-                el.classList.remove('bal-up', 'bal-down');
-            }
-        }, 40);
+    function format(n) {
+        if (n >= 1e9) return (n/1e9).toFixed(2) + 'B';
+        if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+        if (n >= 1e3) return (n/1e3).toFixed(2) + 'K';
+        return n.toLocaleString();
     }
 
-    // --- PARSER (Now handles K, M, B, T) ---
     function parse(v) {
-        if (!v) return 0;
-        let s = v.toString().toLowerCase().replace(/[, ]/g, ''); 
-        let val = parseFloat(s.replace(/[^0-9.]/g, ''));
-        if (isNaN(val)) return 0;
-        if (s.endsWith('k')) val *= 1e3;
-        else if (s.endsWith('m')) val *= 1e6;
-        else if (s.endsWith('b')) val *= 1e9;
-        else if (s.endsWith('t')) val *= 1e12;
-        return Math.floor(val);
+        let s = v.toString().toLowerCase().replace(/[^0-9.kmb]/g, '');
+        let val = parseFloat(s);
+        if (s.includes('k')) val *= 1e3; else if (s.includes('m')) val *= 1e6; else if (s.includes('b')) val *= 1e9;
+        return Math.floor(val) || 0;
     }
 
-    // --- GAME LOGIC ---
+    function flashFooter(c) { const f=document.getElementById('footer'); f.classList.add(c); setTimeout(()=>f.classList.remove(c),500); }
+
+    async function notify(title, msg, color = 0x00ff88) {
+        if (!data.webhook) return;
+        try { fetch(data.webhook, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({embeds:[{title, description:msg, color, timestamp:new Date()}]})}); } catch(e){}
+    }
+
+    // --- CRASH LOGIC ---
+    function handleCrashAction() {
+        if (!crashActive) {
+            crashBet = parse(document.getElementById('crash-bet').value);
+            if (crashBet <= 0 || crashBet > data.bal) return;
+            
+            data.bal -= crashBet; save();
+            crashActive = true;
+            currentMult = 1.0;
+            // Weighted crash point: 1.0 - 10.0
+            crashPoint = (Math.random() * Math.random() * 9) + 1.05;
+            
+            document.getElementById('crash-action-btn').innerText = "CASHOUT";
+            document.getElementById('crash-mult').style.color = "white";
+            
+            crashInterval = setInterval(() => {
+                currentMult += 0.01 + (currentMult * 0.005);
+                document.getElementById('crash-mult').innerText = currentMult.toFixed(2) + "x";
+                document.getElementById('crash-progress').style.width = (currentMult * 8) + "%";
+                
+                if (currentMult >= crashPoint) {
+                    crashEnds(false);
+                }
+            }, 80);
+        } else {
+            crashEnds(true);
+        }
+    }
+
+    function crashEnds(cashedOut) {
+        clearInterval(crashInterval);
+        crashActive = false;
+        const btn = document.getElementById('crash-action-btn');
+        const display = document.getElementById('crash-mult');
+        
+        if (cashedOut) {
+            let win = Math.floor(crashBet * currentMult);
+            data.bal += win; save('win');
+            display.style.color = "var(--neon-green)";
+            addLog("CRASH", `Cashed out at ${currentMult.toFixed(2)}x (+$${format(win)})`);
+            notify("🚀 CRASH WIN", `Cashed out at **${currentMult.toFixed(2)}x** for **$${format(win)}**!`);
+        } else {
+            display.innerText = "CRASHED";
+            display.style.color = "var(--neon-red)";
+            save('loss');
+            addLog("CRASH", `Exploded at ${currentMult.toFixed(2)}x (-$${format(crashBet)})`);
+            notify("💥 CRASHED", `Exploded at **${currentMult.toFixed(2)}x**. Lost **$${format(crashBet)}**.`, 0xff3e3e);
+        }
+        
+        btn.innerText = "PLACE BET";
+        setTimeout(() => { 
+            if(!crashActive) {
+                display.innerText = "1.00x"; 
+                display.style.color = "white";
+                document.getElementById('crash-progress').style.width = "0%";
+            }
+        }, 2000);
+    }
+
+    // --- OTHER GAMES ---
     function playChicken() {
         let bet = parse(document.getElementById('chick-bet').value);
-        if(bet <= 0 || bet > data.bal) return setStatus('chick-status', "INVALID FUNDS", "lose");
-        
-        data.bal -= bet; save(); // Deduct immediately for realism
-        let emo = document.getElementById('chick-emo');
-        emo.style.animation = "flip3D 0.6s infinite linear";
-        
-        setTimeout(() => {
-            emo.style.animation = "none";
-            if(Math.random() > 0.5) {
-                let win = bet * 2;
-                data.bal += win; data.wins++; emo.innerText = "🐔";
-                setStatus('chick-status', `WON $${formatCompact(win)}`, "win");
-                notifyDiscord("💰 CHICKEN WIN", `Won $${formatCompact(win)}`);
-            } else {
-                data.losses++; emo.innerText = "🍗";
-                setStatus('chick-status', "ROASTED", "lose");
-                notifyDiscord("💀 CHICKEN LOSS", `Lost $${formatCompact(bet)}`);
-            }
-            save();
-        }, 1200);
-    }
-
-    function playGuess() {
-        let bet = parse(document.getElementById('guess-bet').value);
-        let val = parseInt(document.getElementById('guess-val').value);
-        if(bet <= 0 || bet > data.bal || isNaN(val)) return;
-        
+        if (bet <= 0 || bet > data.bal) return;
         data.bal -= bet; save();
-        let target = document.getElementById('guess-target');
-        target.innerText = "??";
-        
+        const d = document.getElementById('chick-display'); d.innerText = "🌀";
         setTimeout(() => {
-            let res = Math.floor(Math.random() * 10) + 1;
-            target.innerText = res;
-            if(val === res) {
-                let win = bet * 5;
-                data.bal += win; data.wins++;
-                setStatus('guess-status', `CRACKED! $${formatCompact(win)}`, "win");
-                notifyDiscord("🎰 GUESS WIN", `Won $${formatCompact(win)}`);
-            } else {
-                data.losses++;
-                setStatus('guess-status', "DENIED", "lose");
-                notifyDiscord("📉 GUESS LOSS", `Lost $${formatCompact(bet)}`);
-            }
-            save();
-        }, 1000);
+            if(Math.random() > 0.5) { data.bal += bet*2; d.innerText="🐔"; save('win'); notify("🐔 CHICKEN", `Won $${format(bet*2)}`); }
+            else { d.innerText="🍗"; save('loss'); notify("🍗 CHICKEN", `Lost $${format(bet)}`, 0xff3e3e); }
+        }, 800);
     }
 
-    let mAct=false, mBet=0, mList=[], mRev=0;
     function startMines() {
         mBet = parse(document.getElementById('mines-bet').value);
         let count = parseInt(document.getElementById('mines-count').value);
-        if(mBet <= 0 || mBet > data.bal || count >= 25) return;
-        
+        if(mBet <= 0 || mBet > data.bal) return;
         data.bal -= mBet; mRev = 0; mAct = true; mList = []; save();
         document.getElementById('mines-setup').classList.add('hidden');
         document.getElementById('mines-game').classList.remove('hidden');
         const g = document.getElementById('grid'); g.innerHTML = "";
-        
         while(mList.length < count) { let r=Math.floor(Math.random()*25); if(!mList.includes(r)) mList.push(r); }
-        
         for(let i=0; i<25; i++) {
             let t = document.createElement('div'); t.className="tile";
             t.onclick = () => {
-                if(!mAct || t.innerText!=="") return;
-                if(mList.includes(i)) {
-                    mAct = false; t.classList.add('bomb'); t.innerText="💣";
-                    setStatus('mines-status', "BOOM", "lose");
-                    notifyDiscord("💣 MINES EXPLODED", `Lost $${formatCompact(mBet)}`);
-                } else {
-                    t.classList.add('safe'); t.innerText="💎"; mRev++;
-                    let mult = 1 + (mRev * (count * 0.25));
-                    document.getElementById('cashout-btn').innerText = `CASHOUT $${formatCompact(Math.floor(mBet*mult))}`;
+                if(!mAct || t.classList.contains('safe')) return;
+                if(mList.includes(i)) { mAct=false; t.classList.add('bomb'); t.innerText="💣"; save('loss'); notify("💣 MINE", `Lost $${format(mBet)}`, 0xff3e3e); }
+                else { t.classList.add('safe'); t.innerText="💎"; mRev++;
+                    document.getElementById('cashout-btn').innerText = `CASHOUT $${format(mBet * (1 + (mRev * (count * (isVoid ? 0.4 : 0.25)))))}`;
                 }
-            };
-            g.appendChild(t);
+            }; g.appendChild(t);
         }
     }
 
     function cashoutMines() {
         if(!mAct || mRev === 0) return;
-        let count = parseInt(document.getElementById('mines-count').value);
-        let win = Math.floor(mBet * (1 + (mRev * (count * 0.25))));
-        data.bal += win; data.wins++; mAct = false; save();
-        notifyDiscord("💎 MINES CASHOUT", `Won $${formatCompact(win)}`);
-        showUI('menu');
+        let win = Math.floor(mBet * (1 + (mRev * (parseInt(document.getElementById('mines-count').value) * (isVoid ? 0.4 : 0.25)))));
+        data.bal += win; mAct = false; save('win'); exitMines();
+        notify("💰 MINES", `Won $${format(win)}`);
     }
 
-    // --- OTHER SYSTEMS ---
-    function save() {
-        localStorage.setItem('casino_v99_compact', JSON.stringify(data));
-        document.getElementById('win-stat').innerText = data.wins;
-        document.getElementById('loss-stat').innerText = data.losses;
-        animateBalance();
+    function neuralScan() {
+        if (!mAct || isVoid || data.bal < 10000000) return;
+        data.bal -= 10000000; save('loss');
+        document.querySelectorAll('.tile').forEach((t, i) => { if(mList.includes(i)) t.classList.add('revealed-bomb'); });
     }
 
-    function redeemCode() {
-        let code = document.getElementById('promo-input').value.toUpperCase();
-        if(data.codes[code] && !data.usedCodes.includes(code)) {
-            let amt = data.codes[code];
-            data.bal += amt; data.usedCodes.push(code);
-            notifyDiscord("🎫 CODE USED", `Code ${code} for $${formatCompact(amt)}`, 0xbc13fe);
-            addChat("SYSTEM", `Code ${code} Accepted: +$${formatCompact(amt)}`);
-            save();
-            document.getElementById('promo-input').value = "";
-        } else { alert("Invalid or Used"); }
-    }
-
-    function createCode() {
-        let n = document.getElementById('new-code-name').value.toUpperCase();
-        let a = parse(document.getElementById('new-code-amt').value);
-        if(n && a > 0) { data.codes[n] = a; save(); alert("Code Created"); }
-    }
-
-    async function notifyDiscord(title, msg, color=0x00d4ff) {
-        if (!data.webhook) return;
-        fetch(data.webhook, { method: 'POST', headers: {'Content-Type':'application/json'}, 
-            body: JSON.stringify({embeds:[{title, description:msg, color, timestamp:new Date(), footer:{text:`Balance: $${formatCompact(data.bal)}`}}]}) 
-        });
-    }
-
-    function addChat(u, m) {
-        const c = document.getElementById('chat-content');
-        const d = document.createElement('div');
-        d.className = 'chat-msg';
-        d.innerHTML = `<b>${u}</b>: ${m}`;
-        c.appendChild(d);
-        c.scrollTop = c.scrollHeight;
-    }
-
+    function exitMines() { isVoid = false; showUI('menu'); }
+    function enterVoid() { isVoid = true; showUI('mines'); }
     function showUI(id) {
-        ['menu-ui','chicken-ui','guess-ui','mines-ui','admin-ui'].forEach(u => document.getElementById(u).classList.add('hidden'));
+        ['menu-ui','mines-ui','chicken-ui','crash-ui','admin-ui','pay-ui'].forEach(u => document.getElementById(u).classList.add('hidden'));
         document.getElementById(id + '-ui').classList.remove('hidden');
     }
+    function addLog(t, m) { const c = document.getElementById('chat-content'); const d = document.createElement('div'); d.innerHTML = `[${t}] ${m}`; c.prepend(d); }
+    function processPayment() { let amt = parse(document.getElementById('pay-amt').value); if(amt > 0) { data.bal += amt; save('win'); showUI('menu'); } }
+    function adminSetBal() { data.bal = parse(document.getElementById('adm-bal').value); save(); }
+    function saveAdmin() { data.webhook = document.getElementById('hook-url').value; save(); alert("Synced"); }
 
-    function saveWebhook() { data.webhook = document.getElementById('discord-url').value; save(); alert("Webhook Saved"); }
-
-    // Startup
-    document.getElementById('bal-display').innerText = `$${formatCompact(data.bal)}`;
-    addChat("SYSTEM", "Compact Display Mode Active. Type 'START' to redeem.");
+    save();
 </script>
 </body>
 </html>
